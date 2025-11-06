@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TechStream AI Demo</title>
+    <style>
+        :root { --primary: #6366F1; --primary-dark: #4F46E5; --bg: #F3F4F6; --text: #1F2937; --success: #10B981; }
+        body { font-family: 'Inter', system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); margin: 0; display: flex; flex-direction: column; height: 100vh; }
+        
+        header { background: white; padding: 1rem 2rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; z-index: 20; }
+        .brand { font-size: 1.5rem; font-weight: 800; color: var(--primary); letter-spacing: -0.025em; display: flex; align-items: center; gap: 0.5rem; }
+        .brand span { color: #111827; }
+        .cart-badge { background: var(--text); color: white; padding: 0.5rem 1.25rem; border-radius: 999px; font-weight: 600; font-size: 0.875rem; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); display: flex; align-items: center; gap: 0.5rem; }
+        .cart-badge.bump { transform: scale(1.05); background: var(--primary); }
+
+        main { display: flex; flex: 1; overflow: hidden; }
+        aside { width: 280px; background: white; padding: 2rem; border-right: 1px solid #E5E7EB; overflow-y: auto; flex-shrink: 0; }
+        .content-area { flex: 1; display: flex; flex-direction: column; overflow: hidden; position: relative; }
+        
+        .debug-bar { background: #111827; color: #E5E7EB; padding: 0.75rem 2rem; font-family: 'Menlo', monospace; font-size: 12px; flex-shrink: 0; display: flex; justify-content: space-between; align-items: center; }
+        .debug-badge { background: #374151; padding: 2px 8px; border-radius: 4px; margin-left: 8px; color: #60A5FA; }
+
+        .product-scroll { flex: 1; padding: 2rem; overflow-y: auto; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 2rem; }
+        .card { background: white; border-radius: 1rem; padding: 1.5rem; display: flex; flex-direction: column; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid transparent; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03); }
+        .card:hover { transform: translateY(-4px); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); border-color: #E5E7EB; }
+        .card-img-wrapper { height: 160px; background: #F9FAFB; border-radius: 0.75rem; margin-bottom: 1.25rem; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        .card img { width: 80%; height: 80%; object-fit: contain; transition: transform 0.3s ease; }
+        .card:hover img { transform: scale(1.05); }
+        .product-vendor { font-size: 0.75rem; font-weight: 700; color: var(--primary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem; }
+        .product-title { font-size: 1.125rem; font-weight: 700; margin-bottom: 0.5rem; line-height: 1.4; }
+        .product-specs { font-size: 0.875rem; color: #6B7280; margin-bottom: 1.25rem; }
+        .tags { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1.5rem; }
+        .tag { background: #F3F4F6; color: #4B5563; font-size: 0.75rem; font-weight: 600; padding: 0.25rem 0.75rem; border-radius: 999px; }
+        .price-row { margin-top: auto; display: flex; justify-content: space-between; align-items: center; }
+        .price { font-size: 1.5rem; font-weight: 800; color: #111827; }
+        .btn { background: #111827; color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 0.75rem; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+        .btn:hover { background: var(--primary); transform: translateY(-1px); }
+        .btn:active { transform: scale(0.95); }
+
+        .filter-group { margin-bottom: 2.5rem; }
+        .filter-title { font-size: 0.875rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #9CA3AF; margin-bottom: 1.25rem; }
+        .checkbox-label { display: flex; align-items: center; margin-bottom: 0.875rem; color: #4B5563; font-size: 0.9375rem; cursor: pointer; transition: color 0.2s; }
+        .checkbox-label:hover { color: var(--primary); }
+        .checkbox-label input { margin-right: 0.75rem; accent-color: var(--primary); width: 1.125rem; height: 1.125rem; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="brand">
+            <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect width="32" height="32" rx="8" fill="#4F46E5"/>
+                <path d="M22 11L14 22L10 17" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span>Tech</span>Stream
+        </div>
+        <div id="cart-display" class="cart-badge">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+            <span id="cart-text">0 items ($0.00)</span>
+        </div>
+    </header>
+    <div class="debug-bar">
+        <div>WebMCP Testing Mode</div>
+        <div id="active-filters">Active Filters: None</div>
+    </div>
+    <main>
+        <aside>
+            <div class="filter-group">
+                <div class="filter-title">Manufacturer</div>
+                <div id="manufacturer-filters"></div>
+            </div>
+            <div class="filter-group">
+                <div class="filter-title">Category</div>
+                <div id="tag-filters"></div>
+            </div>
+        </aside>
+        <div class="content-area">
+            <div class="product-scroll">
+                <div id="product-grid" class="grid"></div>
+            </div>
+            </div>
+    </main>
+
+    <script>
+        function log(prefix, message, data = null) {
+            // Only logs to browser console (F12), not visible to user
+            console.log(`[${prefix}] ${message}`, data || '');
+        }
+
+        const getPlaceholder = (hue, icon) => `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300' viewBox='0 0 400 300'%3E%3Crect width='400' height='300' fill='hsl(${hue}, 85%25, 96%25)'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-size='80' fill='hsl(${hue}, 60%25, 60%25)'%3E${icon}%3C/text%3E%3C/svg%3E`;
+
+        const PRODUCTS = [
+            { id: "p1", name: "Aetheria Nova X1", manufacturer: "Quantum", price: 1199.99, specs: "16GB RAM, 1TB SSD", tags: ["Ultrabook", "Professional"], image: getPlaceholder(220, '💻') },
+            { id: "p2", name: "Titanium Storm Z-3", manufacturer: "Nexus", price: 1599.99, specs: "RTX 4070, 32GB RAM", tags: ["Gaming", "High-Performance"], image: getPlaceholder(0, '🎮') },
+            { id: "p3", name: "Evernote 1500", manufacturer: "Stellar", price: 524.99, specs: "8GB RAM, 512GB SSD", tags: ["Budget", "Everyday"], image: getPlaceholder(150, '📝') },
+            { id: "p4", name: "Chroma Flow S-2", manufacturer: "Aura", price: 1299.99, specs: "OLED, 16GB Unified", tags: ["Creative", "Ultrabook"], image: getPlaceholder(280, '🎨') },
+            { id: "p5", name: "Cosmic Voyager G4", manufacturer: "Vortex", price: 1899.99, specs: "RTX 4090, 64GB RAM", tags: ["Gaming", "Workstation"], image: getPlaceholder(30, '🚀') },
+            { id: "p6", name: "Sentinelle X10 Pro", manufacturer: "Dynasty", price: 999.99, specs: "Rugged, 1TB SSD", tags: ["Business", "Security"], image: getPlaceholder(200, '🔒') }
+        ];
+
+        let state = { cart: [], filters: { manufacturers: new Set(), tags: new Set() } };
+
+        function renderApp() {
+            try {
+                const activeM = Array.from(state.filters.manufacturers);
+                const activeT = Array.from(state.filters.tags);
+                const debugHtml = activeM.length + activeT.length === 0 ? 'Active Filters: None' : 
+                    `Active Filters: ${activeM.map(m => `<span class="debug-badge">${m}</span>`).join('')} ${activeT.map(t => `<span class="debug-badge">${t}</span>`).join('')}`;
+                document.getElementById('active-filters').innerHTML = debugHtml;
+                renderFilters();
+                renderProducts();
+                updateCartDisplay();
+            } catch (e) {
+                console.error("Render failed:", e);
+            }
+        }
+
+        function renderFilters() {
+            const manufacturers = [...new Set(PRODUCTS.map(p => p.manufacturer))].sort();
+            const tags = [...new Set(PRODUCTS.flatMap(p => p.tags))].sort();
+            document.getElementById('manufacturer-filters').innerHTML = manufacturers.map(m => `<label class="checkbox-label"><input type="checkbox" value="${m}" onchange="toggleFilter('manufacturers', '${m}')" ${state.filters.manufacturers.has(m) ? 'checked' : ''}>${m}</label>`).join('');
+            document.getElementById('tag-filters').innerHTML = tags.map(t => `<label class="checkbox-label"><input type="checkbox" value="${t}" onchange="toggleFilter('tags', '${t}')" ${state.filters.tags.has(t) ? 'checked' : ''}>${t}</label>`).join('');
+        }
+
+        function renderProducts() {
+            const activeManufacturers = Array.from(state.filters.manufacturers).map(m => m.toLowerCase());
+            const activeTags = Array.from(state.filters.tags).map(t => t.toLowerCase());
+            const filtered = PRODUCTS.filter(p => {
+                if (activeManufacturers.length > 0 && !activeManufacturers.includes(p.manufacturer.toLowerCase())) return false;
+                if (activeTags.length > 0 && !p.tags.some(t => activeTags.includes(t.toLowerCase()))) return false;
+                return true;
+            });
+            document.getElementById('product-grid').innerHTML = filtered.map(p => `
+                <div class="card">
+                    <div class="card-img-wrapper"><img src="${p.image}" alt="${p.name}"></div>
+                    <div class="product-vendor">${p.manufacturer}</div>
+                    <div class="product-title">${p.name}</div>
+                    <div class="product-specs">${p.specs}</div>
+                    <div class="tags">${p.tags.map(t => `<span class="tag">${t}</span>`).join('')}</div>
+                    <div class="price-row">
+                        <div class="price">$${p.price.toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 0})}</div>
+                        <button class="btn" onclick="addToCart('${p.id}')">Add to Cart</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function updateCartDisplay() {
+            const total = state.cart.reduce((sum, item) => sum + item.price, 0);
+            document.getElementById('cart-text').textContent = `${state.cart.length} items ($${total.toFixed(2)})`;
+            if (state.cart.length > 0) {
+                const cartEl = document.getElementById('cart-display');
+                if (cartEl) {
+                    cartEl.classList.add('bump');
+                    setTimeout(() => cartEl.classList.remove('bump'), 300);
+                }
+            }
+        }
+
+        window.toggleFilter = (type, value) => {
+            if (state.filters[type].has(value)) state.filters[type].delete(value); else state.filters[type].add(value);
+            renderApp();
+        };
+
+        window.addToCart = (productId) => {
+            const product = PRODUCTS.find(p => p.id === productId);
+            if (product) { 
+                state.cart.push(product); 
+                renderApp(); 
+                log('APP', `Added to cart: ${product.name}`);
+            }
+        };
+
+        async function registerTools() {
+            if (!navigator.modelContext) { log('ERROR', 'WebMCP API not found.'); return; }
+            const clear = () => { state.filters.manufacturers.clear(); state.filters.tags.clear(); };
+
+            try {
+                navigator.modelContext.registerTool({
+                    name: 'demo_show_gaming_laptops',
+                    description: 'Filter store to show gaming laptops.',
+                    inputSchema: { type: 'object', properties: {} },
+                    execute: async () => { 
+                        clear(); state.filters.tags.add('Gaming'); renderApp(); 
+                        return "Showing 2 gaming laptops."; 
+                    }
+                });
+
+                navigator.modelContext.registerTool({
+                    name: 'demo_show_budget_laptops',
+                    description: 'Filter store to show budget laptops.',
+                    inputSchema: { type: 'object', properties: {} },
+                    execute: async () => { 
+                        clear(); state.filters.tags.add('Budget'); renderApp(); 
+                        return "Showing 1 budget laptop."; 
+                    }
+                });
+
+                navigator.modelContext.registerTool({
+                    name: 'demo_clear_filters',
+                    description: 'Clear all filters and show all products.',
+                    inputSchema: { type: 'object', properties: {} },
+                    execute: async () => { 
+                        clear(); renderApp(); 
+                        return "Filters cleared."; 
+                    }
+                });
+
+                navigator.modelContext.registerTool({
+                    name: 'demo_add_titanium_storm',
+                    description: 'Add Titanium Storm Z-3 to cart.',
+                    inputSchema: { type: 'object', properties: {} },
+                    execute: async () => { 
+                        window.addToCart('p2');
+                        return "Titanium Storm Z-3 added to cart."; 
+                    }
+                });
+
+                navigator.modelContext.registerTool({
+                    name: 'demo_view_cart',
+                    description: 'Check the current contents and total of the shopping cart.',
+                    inputSchema: { type: 'object', properties: {} },
+                    execute: async () => { 
+                        const total = state.cart.reduce((a, b) => a + b.price, 0);
+                        return `Cart has ${state.cart.length} items. Total: $${total.toFixed(2)}.`; 
+                    }
+                });
+
+                log('SYSTEM', 'WebMCP Tools Registered');
+
+            } catch (e) { log('ERROR', 'Tool registration failed', e.message); }
+        }
+
+        renderApp();
+        setTimeout(registerTools, 500);
+    </script>
+</body>
+</html>
